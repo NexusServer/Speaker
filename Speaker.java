@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.LinkedHashMap;
 
 import cn.nukkit.Player;
 import cn.nukkit.command.CommandSender;
@@ -15,25 +16,21 @@ import cn.nukkit.utils.Config;
 import me.onebone.economyapi.EconomyAPI;
 
 public class Speaker extends PluginBase implements Listener{
-	final Pattern chatReg=Pattern.compile("^@È®¼º±â ");
+	final Pattern chatReg=Pattern.compile("^@(ã…Ž|í™•|s|S) ");
 	public Config config;
 	@Override
 	public void onEnable(){
+		LinkedHashMap<String, Object> map=new LinkedHashMap<String, Object>();
 		this.getServer().getPluginManager().registerEvents(this, this);
 		this.getDataFolder().mkdirs();
-		this.config=new Config(this.getDataFolder()+"/settings.json",Config.JSON);
-		if(!this.config.exists("default-chat")){
-			this.config.set("default-chat","world");
-		}
-		if(!this.config.exists("speaker-cost")){
-			this.config.set("speaker-cost", "-10000");
-		}
-		if(Integer.parseInt(this.config.get("speaker-cost").toString())>0){
-			this.config.set("speaker-cost", "-10000");
-			this.getServer().getLogger().alert("speaker-costÀÌ(°¡) 0º¸´Ù ³ôÀ¸¹Ç·Î ±âº»°ªÀÎ -10000À¸·Î ¸ÂÃä´Ï´Ù.");
-		}
-		if(!this.config.exists("speaker-pattern")){
-			this.config.set("speaker-pattern", "¡×b[È®¼º±â] {NAME}:{MESSAGE}");
+		map.put("default-chat","world");
+		map.put("speaker-cost","10000");
+		map.put("speaker-pattern","Â§b[í™•ì„±ê¸°] {NAME} : {MESSAGE}");
+		this.config=new Config(this.getDataFolder()+"/settings.json",Config.JSON,map);
+		if(Integer.parseInt(this.config.get("speaker-cost").toString())<0){
+			this.config.set("speaker-cost", "10000");
+			this.getServer().getLogger().alert("speaker-costì´(ê°€) 0ë³´ë‹¤  ìž‘ìœ¼ë¯€ë¡œ ê¸°ë³¸ê°’ì¸ 10000ìœ¼ë¡œ ë§žì¶¥ë‹ˆë‹¤.");
+			//settings.json : speaker-cost ë¥¼ 0 ìœ¼ë¡œ í•´ë†“ìœ¼ë©´ ë¬´ë£Œìž…ë‹ˆë‹¤.
 		}
 	}
 	@Override
@@ -47,19 +44,23 @@ public class Speaker extends PluginBase implements Listener{
 		String name=player.getDisplayName();
 		Matcher result=chatReg.matcher(message);
 		Set<CommandSender> set=new HashSet<CommandSender>();
-		double money=EconomyAPI.getInstance().myMoney(player);
-		if(money<Integer.parseInt(this.config.get("speaker-cost").toString())){
-			if(!player.isOp()){
-				player.sendMessage("¡×e[È®¼º±â] µ·ÀÌ ºÎÁ·ÇÕ´Ï´Ù.");
-				return;
-			}
-		}
+		int money=(int)EconomyAPI.getInstance().myMoney(player);
+		int cost=Integer.parseInt(this.config.get("speaker-cost").toString());
 		if(result.find()){
-			message=message.substring(5);
+			message=message.substring(3);
 			String format=this.config.get("speaker-pattern").toString();
+			if(money<cost){
+				if(!player.isOp()){
+					player.sendMessage("Â§e[í™•ì„±ê¸°] ëˆì´ ë¶€ì¡±í•©ë‹ˆë‹¤.");
+					event.setCancelled();
+					return;
+				}
+			}
+			if(!player.isOp()){
+				EconomyAPI.getInstance().reduceMoney(player,cost);
+				player.sendMessage("Â§e[í™•ì„±ê¸°] -"+this.config.get("speaker-cost")+"ì›");
+			}
 			this.getServer().broadcastMessage(format.replace("{NAME}",name).replace("{MESSAGE}",message));
-			EconomyAPI.getInstance().reduceMoney(player,-Integer.parseInt(this.config.get("speaker-cost").toString()));
-			player.sendMessage("¡×e[È®¼º±â] -"+this.config.get("speaker-cost")+"¿ø");
 			event.setCancelled();
 			return;
 		}
