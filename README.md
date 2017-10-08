@@ -6,14 +6,14 @@
 ```
 {
   "default-chat": "world",
-  "speaker-cost": "-10000",
-  "speaker-pattern": "§b[확성기] {NAME}:{MESSAGE}"
+  "speaker-cost": "10000",
+  "speaker-pattern": "§b[확성기] {NAME} : {MESSAGE}"
 }
 ```
 
 default-chat : world 또는 server
 
-speaker-cost : 스피커를 사용하면 드는 비용을 적습니다.0보다 크면 자동으로 -10000으로 변경됨
+speaker-cost : 스피커를 사용하면 드는 비용을 적습니다.0보다 작으면 자동으로 10000으로 변경됨
 
 speaker-pattern : 스피커를 사용했을때 뜨는 모양을 적습니다.
 
