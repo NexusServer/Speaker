@@ -24,6 +24,7 @@ public class Speaker extends PluginBase implements Listener{
 		this.getServer().getPluginManager().registerEvents(this, this);
 		this.getDataFolder().mkdirs();
 		map.put("default-chat","world");
+		map.put("default-chat-op","server");
 		map.put("speaker-cost","10000");
 		map.put("speaker-pattern","§b[확성기] {NAME} : {MESSAGE}");
 		this.config=new Config(this.getDataFolder()+"/settings.json",Config.JSON,map);
@@ -65,11 +66,17 @@ public class Speaker extends PluginBase implements Listener{
 			return;
 		}
 		else{
+			if(player.isOp()){
+				if(this.config.get("default-chat-op").toString().equalsIgnoreCase("server")){
+					return;
+				}
+			}
 			switch(this.config.get("default-chat").toString()){
 				case "world":
 				for(Player players:player.getLevel().getPlayers().values()){
 					set.add((CommandSender)players);
 				}
+				this.getLogger().info(player.getDisplayName()+" : "+message);
 				event.setRecipients(set);
 				break;
 				case "server":
@@ -79,6 +86,7 @@ public class Speaker extends PluginBase implements Listener{
 				for(Player players:player.getLevel().getPlayers().values()){
 					set.add((CommandSender)players);
 				}
+				this.getLogger().info(player.getDisplayName()+" : "+message);
 				event.setRecipients(set);
 				break;
 			}
